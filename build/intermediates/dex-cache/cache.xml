@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        is-multidex="true"
+        jar="/Users/bentownshend/.android/build-cache/07026b6545f860fb6f6663f579d432fbf545ebf0/output/jars/classes.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="26.0.2"
+        sha1="2cd4b982617e544728de0782d718a58ce1b06e3f">
+        <dex dex="/Users/bentownshend/Documents/development/university/year3/mobile/Assignment/app/build/intermediates/transforms/dex/debug/folders/1000/10/classes_e08667d5007e4973ae75e54e97d3f9fae8344be7/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/Users/bentownshend/Documents/development/university/year3/mobile/Assignment/app/build/intermediates/incremental-runtime-classes/debug/instant-run.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="26.0.2"
+        sha1="3be78ebc2706b2e1fe2f12d5726887a92d6c183b">
+        <dex dex="/Users/bentownshend/Documents/development/university/year3/mobile/Assignment/app/build/intermediates/transforms/dex/debug/folders/1000/10000/instant-run_4baf7d39cb881ad5838df09fd110b7b9941c6ef9/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/Users/bentownshend/Documents/development/university/year3/mobile/Assignment/app/build/intermediates/incremental-classes/debug/instant-run-bootstrap.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="26.0.2"
+        sha1="3c031f7d02e770fd2873b7051070afe7b81e35fe">
+        <dex dex="/Users/bentownshend/Documents/development/university/year3/mobile/Assignment/app/build/intermediates/transforms/dex/debug/folders/1000/10000/instant-run-bootstrap_898bb8a58d64e1de788daa3f6bb81b50dc9806c9/classes.dex" />
+    </item>
+
+</items>
