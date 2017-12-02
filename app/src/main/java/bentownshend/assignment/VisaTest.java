@@ -4,17 +4,24 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
+import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -33,16 +40,21 @@ public class VisaTest extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_visa_test);
+    }
 
+    protected void doDataTest(View view) {
         new VisaConnection().execute("");
     }
 
-    // TODO: Covert output to JsonObject
-    private class VisaConnection extends AsyncTask<String, Void, JSONObject> {
+    // Reference: http://chariotsolutions.com/blog/post/https-with-client-certificates-on/
+    // Reference: https://stackoverflow.com/questions/1968416/how-to-do-http-authentication-in-android
+    private class VisaConnection extends AsyncTask<String, Void, String> {
         @Override
-        protected JSONObject doInBackground(String... params) {
-            JSONObject result = null;
-            String url = "https://sandbox.api.visa.com/vdp/helloworld";
+        protected String doInBackground(String... params) {
+            String result = null;
+//            String url = "https://sandbox.api.visa.com/vdp/helloworld";
+            String url = "https://sandbox.api.visa.com/globalatmlocator/v1/localatms/atmsinquiry";
+
             String clientUser = "E16N805EFQ6CW3ZRFK9O216wu_66iY8r8SvsD6c-UyrGNnR9A";
             String clientPass = "O0diQOzmgRzzx675Q3PnSMeYBf4QfP4FBvsI9";
 
@@ -69,28 +81,62 @@ public class VisaTest extends AppCompatActivity {
                         ((HttpsURLConnection) urlConnection)
                                 .setSSLSocketFactory(sslContext.getSocketFactory());
                     }
-                    // TODO: Change to post
-                    // TODO: set parameters
-                    urlConnection.setRequestMethod("GET");
+
+                    urlConnection.setRequestMethod("POST");
+                    urlConnection.setRequestProperty("Content-Type", "application/json");
+//                    urlConnection.setRequestProperty("Accept", "application/json");
                     urlConnection.setRequestProperty("Authorization", basicAuth);
-                    urlConnection.setConnectTimeout(1500);
-                    urlConnection.setReadTimeout(1500);
 
-                    if (urlConnection.getResponseCode() == HttpsURLConnection.HTTP_OK) {
-                        InputStream in = urlConnection.getInputStream();
 
-                        BufferedReader reader = new BufferedReader(new InputStreamReader(
-                                in, "iso-8859-1"), 8);
-                        StringBuilder sb = new StringBuilder();
-                        String line;
-                        while ((line = reader.readLine()) != null) {
-                            sb.append(line).append("\n");
-                        }
-                        in.close();
-                        result = new JSONObject(sb.toString());
+
+
+
+
+
+                    // TODO: Covert geocodes to object
+//                    JSONObject bodyObject = new JSONObject();
+//                    JSONObject wsRequestHeaderV2Object = new JSONObject();
+//                    JSONObject requestDataObject = new JSONObject();
+//                    JSONObject locationObject = new JSONObject();
+//                    JSONObject optionsObject = new JSONObject();
+//                    JSONObject rangeObject = new JSONObject();
+//                    JSONObject sortObject = new JSONObject();
+//
+//                    rangeObject.put("start", 10);
+//                    rangeObject.put("end", 20);
+//
+//                    sortObject.put("primary", "city");
+//                    sortObject.put("direction", "asc");
+//
+//                    locationObject.put("address", JSONObject.NULL);
+//                    locationObject.put("placeName", "700 Arch St, Pittsburg, PA 15212");
+//                    locationObject.put("geocodes", JSONObject.NULL);
+//
+//                    optionsObject.put("range", rangeObject);
+//                    optionsObject.put("sort", sortObject);
+//                    optionsObject.put("useFirstAmbiguous", true);
+//
+//                    requestDataObject.put("culture", "en-US");
+//                    requestDataObject.put("distance", "20");
+//                    requestDataObject.put("distanceUnit", "mi");
+//                    requestDataObject.put("location", locationObject);
+//                    requestDataObject.put("options", optionsObject);
+//
+//                    wsRequestHeaderV2Object.put("applicationID", "VATMLOC");
+//
+//                    bodyObject.put("wsRequestHeaderV2", wsRequestHeaderV2Object);
+//                    bodyObject.put("requestData", requestDataObject);
+
+                    int responseCode = urlConnection.getResponseCode();
+                    if (responseCode == HttpURLConnection.HTTP_OK) {
+                        result = readResponse(urlConnection.getInputStream());
+
+                    } else {
+                        result = String.valueOf(urlConnection.getResponseCode()) + " " + urlConnection.getResponseMessage();
                     }
                 } catch(Exception ex) {
                     // TODO
+                    result = ex.toString();
                 } finally {
                     if(urlConnection != null) {
                         urlConnection.disconnect();
@@ -105,9 +151,39 @@ public class VisaTest extends AppCompatActivity {
         }
 
         @Override
-        protected void onPostExecute(JSONObject result) {
+        protected void onPostExecute(String result) {
             TextView txt = (TextView) findViewById(R.id.textView);
-            txt.setText(result.toString());
+//
+//            String text = null;
+//
+//            if (result != null) {
+//                try {
+//                    text = result.getString("message");
+//                } catch (JSONException e) {
+//                    text = result.toString();
+//                }
+//            } else {
+//                text = "No Result.";
+//            }
+//
+//            txt.setText(text);
+
+            txt.setText(result);
+        }
+
+        private String readResponse(InputStream in) throws IOException {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+            String inputLine;
+            StringBuffer response = new StringBuffer();
+
+            while ((inputLine = reader.readLine()) != null)
+            {
+                response.append(inputLine);
+            }
+            reader.close();
+
+            return response.toString();
+
         }
     }
 }
