@@ -61,16 +61,17 @@ public class MainActivity extends AppCompatActivity {
         String locationProvider = LocationManager.GPS_PROVIDER;
         Location lastKnownLocation = locationManager.getLastKnownLocation(locationProvider);
 
-        double lat = 0.0, longi = 0.0;
+        double curLat = 51.522629, curLong = -0.163133;
 
-        if (lastKnownLocation != null) {
-            lat = lastKnownLocation.getLatitude();
-            longi = lastKnownLocation.getLongitude();
-        }
+//        TODO: Add after testing
+//        if (lastKnownLocation != null) {
+//            curLat = lastKnownLocation.getLatitude();
+//            curLong = lastKnownLocation.getLongitude();
+//        }
 
         Intent map = new Intent(this, MapsActivity.class);
-        map.putExtra("curLat", lat);
-        map.putExtra("curLongi", longi);
+        map.putExtra("curLat", curLat);
+        map.putExtra("curLong", curLong);
         startActivity(map);
     }
 }
