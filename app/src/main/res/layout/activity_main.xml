@@ -23,7 +23,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="16dp"
         android:layout_marginTop="8dp"
-        android:onClick="favouriteClick"
+        android:onClick="favouritesClick"
         android:text="Favourites"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/scanButton" />

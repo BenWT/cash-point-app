@@ -33,6 +33,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void favouritesClick(View view) {
+        // TODO load favourites inten
+        Intent favourites = new Intent(this, FavouritesActivity.class);
+        startActivity(favourites);
+    }
+
     public void favouriteClick(View view) {
         Toast.makeText(MainActivity.this, "Should show favourites!", Toast.LENGTH_SHORT).show();
     }

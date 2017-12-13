@@ -66,7 +66,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public class ATM {
         double latitude, longitude;
         boolean createdMarker = false;
-        String id, name, response;
+        String id, name, address, response;
 
         public ATM() {}
         public ATM(double latitude, double longitude, String name, String response) {
@@ -130,13 +130,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public boolean onMarkerClick(final Marker marker) {
         if (marker.getTitle() != "Current Location") {
             for (int i = 0; i < atms.size(); i++) {
-//                Log.v("marker-click", marker.getId() + " " + atms.get(i).id);
-
                 if (Objects.equals(marker.getId().toString(), atms.get(i).id)) {
-//                    Toast.makeText(MapsActivity.this, marker.getTitle(), Toast.LENGTH_SHORT).show();
-
                     Intent info = new Intent(this, InformationActivity.class);
-                    info.putExtra("info", atms.get(i).response);
+                    info.putExtra("latitude", atms.get(i).latitude);
+                    info.putExtra("longitude", atms.get(i).longitude);
+                    info.putExtra("name", atms.get(i).name);
+                    info.putExtra("address", atms.get(i).address);
                     startActivity(info);
                 }
             }
@@ -161,6 +160,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         atm.latitude = responseData.getJSONObject(i).getJSONObject("location").getJSONObject("coordinates").getDouble("latitude");
                         atm.longitude = responseData.getJSONObject(i).getJSONObject("location").getJSONObject("coordinates").getDouble("longitude");
                         atm.name = responseData.getJSONObject(i).getJSONObject("location").getString("ownerBusName");
+                        atm.address = responseData.getJSONObject(i).getJSONObject("location").getJSONObject("address").getString("formattedAddress");
                         atm.response = responseData.getJSONObject(i).toString();
                         atm.CreateMarker();
 
