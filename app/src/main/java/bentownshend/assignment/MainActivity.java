@@ -1,5 +1,8 @@
 package bentownshend.assignment;
 
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.Manifest;
@@ -12,7 +15,6 @@ import android.widget.Toast;
 
 import android.content.Context;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 
 public class MainActivity extends AppCompatActivity {
@@ -28,23 +30,17 @@ public class MainActivity extends AppCompatActivity {
         if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
         } else {
-//            Toast.makeText(MainActivity.this, "Already have permission!", Toast.LENGTH_SHORT).show();
             LoadMap();
         }
     }
 
     public void favouritesClick(View view) {
-        // TODO load favourites inten
         Intent favourites = new Intent(this, FavouritesActivity.class);
         startActivity(favourites);
     }
 
-    public void favouriteClick(View view) {
-        Toast.makeText(MainActivity.this, "Should show favourites!", Toast.LENGTH_SHORT).show();
-    }
-
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
             case 1: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -53,31 +49,31 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(MainActivity.this, "Could not access your location!", Toast.LENGTH_SHORT).show();
                 }
-                return;
             }
         }
     }
 
     public void LoadMap() {
-        // TODO: get location
-        // TODO: open map intent
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(InformationActivity.CONNECTIVITY_SERVICE);
+        if (connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED || connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState() == NetworkInfo.State.CONNECTED) {
+            LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+            String locationProvider = LocationManager.GPS_PROVIDER;
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                Location lastKnownLocation = locationManager.getLastKnownLocation(locationProvider);
 
-        LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-
-        String locationProvider = LocationManager.GPS_PROVIDER;
-        Location lastKnownLocation = locationManager.getLastKnownLocation(locationProvider);
-
-        double curLat = 51.522629, curLong = -0.163133;
-
-//        TODO: Add after testing
-//        if (lastKnownLocation != null) {
-//            curLat = lastKnownLocation.getLatitude();
-//            curLong = lastKnownLocation.getLongitude();
-//        }
-
-        Intent map = new Intent(this, MapsActivity.class);
-        map.putExtra("curLat", curLat);
-        map.putExtra("curLong", curLong);
-        startActivity(map);
+                if (lastKnownLocation != null) {
+                    Intent map = new Intent(this, MapsActivity.class);
+                    map.putExtra("curLat", lastKnownLocation.getLatitude());
+                    map.putExtra("curLong", lastKnownLocation.getLongitude());
+                    startActivity(map);
+                } else {
+                    Toast.makeText(MainActivity.this, "Could not access your location!", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(MainActivity.this, "Could not access your location!", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(MainActivity.this, "Network connection not detected!", Toast.LENGTH_SHORT).show();
+        }
     }
 }

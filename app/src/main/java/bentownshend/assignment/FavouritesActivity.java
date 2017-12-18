@@ -2,11 +2,9 @@ package bentownshend.assignment;
 
 import android.content.Context;
 import android.content.Intent;
-import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,7 +16,6 @@ import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,32 +30,26 @@ public class FavouritesActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_favourites);
 
-        // TODO Load favourites
-        // TODO add favourites to list view
-        // TODO on click, load info activity
-
         File directory = getFilesDir();
         File[] files = directory.listFiles();
 
         if (files != null) {
-            for (int i = 0; i < files.length; i++) {
-                Log.d("test", String.valueOf(files.length));
-                if (files[i].getName().startsWith("atm-")) {
+            for (File file : files) {
+                if (file.getName().startsWith("atm-")) {
                     try {
-                        BufferedReader br = new BufferedReader(new FileReader(files[i]));
+                        BufferedReader br = new BufferedReader(new FileReader(file));
                         List<String> lines = new ArrayList<>();
                         String line;
 
                         while ((line = br.readLine()) != null) {
                             lines.add(line);
-                            Log.d("test", line);
                         }
                         br.close();
 
                         favourites.add(new FavouriteInfo(lines));
 
                         FavouriteAdapter adapter = new FavouriteAdapter(this, favourites);
-                        ListView list = (ListView)findViewById(R.id.favouritesList);
+                        ListView list = (ListView) findViewById(R.id.favouritesList);
                         list.setAdapter(adapter);
                         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                             @Override
@@ -67,12 +58,18 @@ public class FavouritesActivity extends AppCompatActivity {
                                 TextView tvLongitude = (TextView) view.findViewById(R.id.tvLongitude);
                                 TextView tvName = (TextView) view.findViewById(R.id.tvName);
                                 TextView tvAddress = (TextView) view.findViewById(R.id.tvAddress);
+                                TextView tvWheelchair = (TextView) view.findViewById(R.id.tvWheelchair);
+                                TextView tvBalance = (TextView) view.findViewById(R.id.tvBalance);
+                                TextView tvPin = (TextView) view.findViewById(R.id.tvPin);
 
                                 Intent info = new Intent(FavouritesActivity.this, InformationActivity.class);
                                 info.putExtra("latitude", Double.parseDouble((String) tvLatitude.getText()));
                                 info.putExtra("longitude", Double.parseDouble((String) tvLongitude.getText()));
                                 info.putExtra("name", tvName.getText());
                                 info.putExtra("address", tvAddress.getText());
+                                info.putExtra("wheelchair", tvWheelchair.getText());
+                                info.putExtra("balance", tvBalance.getText());
+                                info.putExtra("pin", tvPin.getText());
                                 startActivity(info);
                             }
                         });
@@ -81,35 +78,35 @@ public class FavouritesActivity extends AppCompatActivity {
                     }
                 }
             }
+
+            if (favourites.size() <= 0) Toast.makeText(FavouritesActivity.this, "Could not find any favourites!", Toast.LENGTH_SHORT).show();
         }
     }
 
     class FavouriteInfo {
-        String latitude;
-        String longitude;
-        String name;
-        String address;
+        String latitude, longitude, name, address, wheelchair, balance, pin;
 
         FavouriteInfo(List<String> lines) {
-            Log.d("test", String.valueOf(lines.size()));
-
-            if (lines.size() == 4) {
+            if (lines.size() == 7) {
                 this.latitude = lines.get(0);
                 this.longitude = lines.get(1);
                 this.name = lines.get(2);
                 this.address = lines.get(3);
+                this.wheelchair = lines.get(4);
+                this.balance = lines.get(5);
+                this.pin = lines.get(6);
             }
         }
     }
 
-    // https://github.com/codepath/android_guides/wiki/Using-an-ArrayAdapter-with-ListView
-    class FavouriteAdapter extends ArrayAdapter<FavouriteInfo> {
-        public FavouriteAdapter(Context context, List<FavouriteInfo> items) {
+    private class FavouriteAdapter extends ArrayAdapter<FavouriteInfo> {
+        FavouriteAdapter(Context context, List<FavouriteInfo> items) {
             super(context, 0, items);
         }
 
+        @NonNull
         @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
+        public View getView(int position, View convertView, @NonNull ViewGroup parent) {
             FavouriteInfo f = getItem(position);
 
             if (convertView == null) {
@@ -120,11 +117,19 @@ public class FavouritesActivity extends AppCompatActivity {
             TextView tvLongitude = (TextView) convertView.findViewById(R.id.tvLongitude);
             TextView tvName = (TextView) convertView.findViewById(R.id.tvName);
             TextView tvAddress = (TextView) convertView.findViewById(R.id.tvAddress);
+            TextView tvWheelchair = (TextView) convertView.findViewById(R.id.tvWheelchair);
+            TextView tvBalance = (TextView) convertView.findViewById(R.id.tvBalance);
+            TextView tvPin = (TextView) convertView.findViewById(R.id.tvPin);
 
-            tvLatitude.setText(f.latitude);
-            tvLongitude.setText(f.longitude);
-            tvName.setText(f.name);
-            tvAddress.setText(f.address);
+            if (f != null) {
+                tvLatitude.setText(f.latitude);
+                tvLongitude.setText(f.longitude);
+                tvName.setText(f.name);
+                tvAddress.setText(f.address);
+                tvWheelchair.setText(f.wheelchair);
+                tvBalance.setText(f.balance);
+                tvPin.setText(f.pin);
+            }
 
             return convertView;
         }

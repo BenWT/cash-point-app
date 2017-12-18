@@ -32,4 +32,25 @@
         android:layout_height="wrap_content"
         android:text="Address" />
 
+    <TextView
+        android:id="@+id/tvWheelchair"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Latitude"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tvBalance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Latitude"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tvPin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Latitude"
+        android:visibility="gone" />
+
 </LinearLayout>

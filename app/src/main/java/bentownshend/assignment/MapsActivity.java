@@ -1,7 +1,6 @@
 package bentownshend.assignment;
 
 import android.content.Intent;
-import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Base64;
@@ -34,11 +33,8 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.security.KeyStore;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
 
@@ -50,8 +46,6 @@ import javax.net.ssl.SSLContext;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     private GoogleMap mMap;
-    private Marker currentMarker;
-    private List<Marker> markers = new ArrayList<>();
     private List<ATM> atms = new ArrayList<>();
 
     Bundle extras;
@@ -63,28 +57,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     String basicAuth = "Basic " + Base64.encodeToString(
             (clientUser + ":" + clientPass).getBytes(), Base64.NO_WRAP);
 
-    public class ATM {
+    private class ATM {
         double latitude, longitude;
         boolean createdMarker = false;
-        String id, name, address, response;
+        String id, name, address, response, wheelchair, balance, pin;
 
-        public ATM() {}
-        public ATM(double latitude, double longitude, String name, String response) {
-            this.latitude = latitude;
-            this.longitude = longitude;
-            this.response = response;
-        }
+        ATM() {}
 
-        public void CreateMarker() {
+        void CreateMarker() {
             if (mMap != null && !createdMarker) {
                 LatLng curPos = new LatLng(latitude, longitude);
-
-//                Marker m = mMap.addMarker(new MarkerOptions().position(curPos).title(this.name));
-                Marker m = mMap.addMarker(new MarkerOptions().position(curPos).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
-                id = m.getId();
-
-                markers.add(m);
-
+                id = mMap.addMarker(new MarkerOptions().position(curPos).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))).getId();
                 createdMarker = true;
             }
         }
@@ -116,7 +99,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         if (extras != null) {
             LatLng curPos = new LatLng(extras.getDouble("curLat"), extras.getDouble("curLong"));
-            currentMarker = mMap.addMarker(new MarkerOptions().position(curPos).title("Current Location"));
+            mMap.addMarker(new MarkerOptions().position(curPos).title("Current Location"));
 
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(curPos, 15.0f));
         }
@@ -128,14 +111,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public boolean onMarkerClick(final Marker marker) {
-        if (marker.getTitle() != "Current Location") {
+        if (!Objects.equals(marker.getTitle(), "Current Location")) {
             for (int i = 0; i < atms.size(); i++) {
-                if (Objects.equals(marker.getId().toString(), atms.get(i).id)) {
+                if (Objects.equals(marker.getId(), atms.get(i).id)) {
                     Intent info = new Intent(this, InformationActivity.class);
                     info.putExtra("latitude", atms.get(i).latitude);
                     info.putExtra("longitude", atms.get(i).longitude);
                     info.putExtra("name", atms.get(i).name);
                     info.putExtra("address", atms.get(i).address);
+                    info.putExtra("wheelchair", atms.get(i).wheelchair);
+                    info.putExtra("balance", atms.get(i).balance);
+                    info.putExtra("pin", atms.get(i).pin);
                     startActivity(info);
                 }
             }
@@ -152,8 +138,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onResponse(JSONObject response) {
                 try {
-                    JSONArray responseData = response.getJSONArray("responseData")
-                        .getJSONObject(0).getJSONArray("foundATMLocations");
+                    JSONArray responseData = response.getJSONArray("responseData").getJSONObject(0).getJSONArray("foundATMLocations");
 
                     for (int i = 0; i < responseData.length(); i++) {
                         ATM atm = new ATM();
@@ -162,29 +147,40 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         atm.name = responseData.getJSONObject(i).getJSONObject("location").getString("ownerBusName");
                         atm.address = responseData.getJSONObject(i).getJSONObject("location").getJSONObject("address").getString("formattedAddress");
                         atm.response = responseData.getJSONObject(i).toString();
+
+                        JSONArray properties = responseData.getJSONObject(i).getJSONObject("location").getJSONArray("properties");
+
+                        for (int j = 0; j < properties.length(); j++) {
+                            if (Objects.equals(properties.getJSONObject(j).getString("name"), "WHEELCHAIR")) {
+                                if (Objects.equals(properties.getJSONObject(j).getString("value"), "Y")) atm.wheelchair = "Wheelchair Accessible";
+                                else if (Objects.equals(properties.getJSONObject(j).getString("value"), "N")) atm.wheelchair = "No Wheelchair Access";
+                            } else if (Objects.equals(properties.getJSONObject(j).getString("name"), "BALANCE_INQUIRY")) {
+                                if (Objects.equals(properties.getJSONObject(j).getString("value"), "Y")) atm.balance = "Balance Inquiry Available";
+                                else if (Objects.equals(properties.getJSONObject(j).getString("value"), "N")) atm.balance = "Balance Inquiry Unavailable";
+                            } else if (Objects.equals(properties.getJSONObject(j).getString("name"), "PIN_CHANGE")) {
+                                if (Objects.equals(properties.getJSONObject(j).getString("value"), "Y")) atm.pin = "Pin Change Available";
+                                else if (Objects.equals(properties.getJSONObject(j).getString("value"), "N")) atm.pin = "Pin Change Unavailable";
+                            }
+                        }
+
                         atm.CreateMarker();
 
                         atms.add(atm);
-
-//                        Log.v("atm", atm.latitude + " : " + atm.longitude);
                     }
-
-
                 } catch (JSONException e) {
-                    // TODO: Add toast message
+                    Toast.makeText(MapsActivity.this, "Problem with response data!", Toast.LENGTH_SHORT).show();
                 }
             }
         }, new Response.ErrorListener() {
 
             @Override
             public void onErrorResponse(VolleyError error) {
-                // TODO: Add toast message
-//                tv.setText("Error: " + error.toString());
+                Toast.makeText(MapsActivity.this, "Uh oh, something went wrong!", Toast.LENGTH_SHORT).show();
             }
         }) {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
-                Map<String, String>  headers = new HashMap<String, String>();
+                Map<String, String>  headers = new HashMap<>();
                 headers.put("Authorization", basicAuth);
                 headers.put("Accept", "application/json");
 
@@ -214,7 +210,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 sslContext.init(keyManagers, null, null);
 
                 httpsURLConnection.setSSLSocketFactory(sslContext.getSocketFactory());
-                // httpsURLConnection.setHostnameVerifier(getHostnameVerifier());
             } catch (Exception e) {
                 e.printStackTrace();
             }
